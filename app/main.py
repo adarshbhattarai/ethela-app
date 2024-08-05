@@ -1,30 +1,42 @@
-# app/main.py
 import uvicorn
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import user_routes
+import firebase_admin
+from firebase_admin import credentials, firestore
+from app.api.user_routes import thela_routes
+import app.start
+
 
 app = FastAPI()
 
+def setup_cors():
+    origins = [
+        "http://localhost",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-origins = [
-    "http://localhost",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost**"
-    # Add other origins if needed
-]
+def initialize_firebase():
+    if not firebase_admin._apps:
+        service_account_key = "E:/codes/GeminiAgent/thela-gcloud-run-apis/service-account.json"
+        cred = credentials.Certificate(service_account_key)
+        firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    return db
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+def setup_routes():
+    app.include_router(thela_routes.router, prefix="/users")
 
-app.include_router(user_routes.router, prefix="/users")
-
-
+setup_cors()
+setup_routes()
+#db = initialize_firebase()
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8001, reload=True)
