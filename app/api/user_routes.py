@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.models.prediction_request import PredictionRequest
+from app.models.question_request import QuestionRequest
 from app.schemas.user import UserCreate, UserResponse
 from app.services.user_service import UserService
 from app.dependencies import get_user_service
@@ -30,9 +31,12 @@ class ThelaRoutes:
             random_number = random.randint(1, 100)
             return {"Hello": random_number}
 
-        @self.router.get("/ques")
-        def answer_dental_question(question: Optional[str] = None, service: UserService = Depends(get_user_service)):
-            return service.answer_dental_question(question=question)
+        @self.router.post("/ques")
+        def answer_dental_question(
+                request: QuestionRequest,
+                service: UserService = Depends(get_user_service)
+        ):
+            return service.answer_dental_question(question=request.question, history=request.history)
 
 
         @self.router.post("/predict")

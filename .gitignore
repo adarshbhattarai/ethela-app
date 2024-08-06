@@ -7,3 +7,4 @@ venv2/*
 __pycache__
 service-account.json
 app/cache
+app/service-account.json

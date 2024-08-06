@@ -22,19 +22,18 @@ from nltk import WordNetLemmatizer, word_tokenize
 from nltk.corpus import stopwords
 
 from app.prompts.prompts import contextualize_q_system_prompt, dental_bot_assistant, system_prompt_with_history, \
-    user_prompt_model
+    user_prompt_model, combined_cot_prompt
 from app.models.content import Content
 ### Download NLTK and SpaCy Resources and configure vertex ai
 
 
-
-
 load_dotenv()
 api_key = os.getenv('API_KEY')
+app_cred=os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 os.environ['GOOGLE_API_KEY'] = api_key
-#project_id = "mimetic-fulcrum-407320"
-project_id = "southern-idea-407320"
-vertexai.init(project=project_id, location="us-east1")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = app_cred
+db = lambda: None
+
 
 
 
@@ -66,7 +65,7 @@ class Loader:
 
     def getContent(self):
         all_content = []
-        with open('allContent.pkl', 'rb') as f:
+        with open('../allContent.pkl', 'rb') as f:
             unpickler = MyCustomUnpickler(f)
             all_content = unpickler.load()
 
@@ -165,9 +164,9 @@ class DentalChatbot:
             chain = ai_prompt | self.llm.model
             answer = chain.invoke({"query": query})
 
-        detected_lang = self.translator.detect(query).lang
-        if detected_lang != 'en':
-            answer = self.translator.translate(answer, src='en', dest=detected_lang).text
+        # detected_lang = self.translator.detect(query).lang
+        # if detected_lang != 'en':
+        #     answer = self.translator.translate(answer, src='en', dest=detected_lang).text
 
         return answer
 
@@ -230,4 +229,3 @@ loader = Loader()
 all_content = loader.getContent()
 db = FAISS.from_documents(all_content, cached_embedder)
 chatbot = DentalChatbot()
-chatbot.interact()

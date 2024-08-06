@@ -2,7 +2,7 @@
 
 from typing import List
 from app.schemas.user import UserCreate, UserResponse
-from ..start import db
+from ..start import db, chatbot
 
 
 class UserService:
@@ -27,10 +27,21 @@ class UserService:
 
         return [instances, parameters]
 
-    def answer_dental_question(self, question=""):
+    def answer_dental_question(self, question="", history=None):
         print("DB",db.index)
+        patient_details = {
+            "name": "Adarsh",
+            "age": 23,
+            "symptoms": "None",
+            "medical_condition": "Nothing surgery once in past",
+            "allergy_history": "Sometimes",
+            "smoker_status": "no",
+            "current_dental_history": "None"
+        }
 
-        print("Wow")
+        answer = chatbot.answer_question(patient_details=patient_details,query=question,conversation_history=history)
+
+        return answer
 
 
 
