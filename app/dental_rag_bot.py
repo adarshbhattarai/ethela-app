@@ -2,7 +2,6 @@
 import os
 import pickle
 from dotenv import load_dotenv
-import vertexai
 
 from googletrans import Translator
 from langchain_google_vertexai import VertexAI
@@ -19,17 +18,19 @@ from langchain.storage import LocalFileStore
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-### Download NLTK and SpaCy Resources and configure vertex ai
 
-
+import google.auth
 
 load_dotenv()
 api_key = os.getenv('API_KEY')
+app_cred=os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 os.environ['GOOGLE_API_KEY'] = api_key
-#project_id = "mimetic-fulcrum-407320"
-project_id = "southern-idea-407320"
-vertexai.init(project=project_id, location="us-east1")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = app_cred
 db = lambda: None
+
+
+credentials, project_id = google.auth.default()
+
 
 user_prompt_model = """Given the user query {query} , present your answer in 3 sentences and make it as clear and concise."""
 
@@ -265,7 +266,7 @@ class Content:
 class Loader:
     def getContent(self):
         all_content = []
-        with open('allContent.pkl', 'rb') as f:
+        with open('../allContent.pkl', 'rb') as f:
             all_content = pickle.load(f)
 
         all_documents = []
@@ -363,9 +364,9 @@ class DentalChatbot:
             chain = ai_prompt | self.llm.model
             answer = chain.invoke({"query": query})
 
-        detected_lang = self.translator.detect(query).lang
-        if detected_lang != 'en':
-            answer = self.translator.translate(answer, src='en', dest=detected_lang).text
+        # detected_lang = self.translator.detect(query).lang
+        # if detected_lang != 'en':
+        #     answer = self.translator.translate(answer, src='en', dest=detected_lang).text
 
         return answer
 

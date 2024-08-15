@@ -128,7 +128,7 @@ class DentalChatbot:
             docs = db.as_retriever().invoke(query)
 
             # LLM with function call
-            structured_llm_grader_hallucination = self.llm.model.with_structured_output(GradeHallucinations)
+            #structured_llm_grader_hallucination = self.llm.model.with_structured_output(GradeHallucinations)
             result = rag_chain.invoke({"input": str(input_data), "chat_history": conversation_history})
 
             # Prompt
@@ -136,23 +136,18 @@ class DentalChatbot:
                              Restrict yourself to give a binary score, either 'yes' or 'no'. If the answer is supported or partially supported by the set of facts, consider it a yes. \n
                             Don't consider calling external APIs for additional information as consistent with the facts."""
 
-            hallucination_prompt = ChatPromptTemplate.from_messages(
-                [
-                    ("system", system_prompt_with_history),
-                    ("human", "Set of facts: \n\n {documents} \n\n LLM generation: {generation}"),
-                ]
-            )
+            # hallucination_prompt = ChatPromptTemplate.from_messages(
+            #     [
+            #         ("system", system_prompt_with_history),
+            #         ("human", "Set of facts: \n\n {documents} \n\n LLM generation: {generation}"),
+            #     ]
+            # )
 
-            hallucination_grader = hallucination_prompt | structured_llm_grader_hallucination
-            hallucination_check = hallucination_grader.invoke({"documents": docs, "generation": result})
-            print(hallucination_check)
-
-
-
+            #hallucination_grader = hallucination_prompt | structured_llm_grader_hallucination
+            #hallucination_check = hallucination_grader.invoke({"documents": docs, "generation": result})
             answer = result['answer']
 
         else:
-
             ##Uses LLM's system prompt
             chain = self.get_rag_chain()
             result = chain.invoke({"input": str(input_data)})
@@ -169,54 +164,6 @@ class DentalChatbot:
         #     answer = self.translator.translate(answer, src='en', dest=detected_lang).text
 
         return answer
-
-    def interact(self):
-        while True:
-            patient_details = {
-                "name": "Adarsh",
-                "age": 23,
-                "symptoms": "None",
-                "medical_condition": "Nothing surgery once in past",
-                "allergy_history": "Sometimes",
-                "smoker_status": "no",
-                "current_dental_history": "None"
-            }
-
-            question = input("Please ask your dental question: ")
-            if question.lower() == "quit":
-                break
-            response = self.answer_question(patient_details=patient_details, query=question,
-                                            conversation_history=self.chat_history)
-
-            print("Response:", response)
-
-
-
-            self.chat_history.extend([
-                HumanMessage(content=question),
-                AIMessage(content=response),
-            ])
-
-            self.feedback_counter += 1
-            if self.feedback_counter % 5 == 0:
-                user_feedback = input("Was this answer helpful? (yes/no): ")
-                if user_feedback.lower() == "yes":
-                    continue
-                elif user_feedback.lower() == "no":
-                    new_query = input("I'm sorry. Can you please provide more details or ask another question: ")
-                    if new_query:
-                        response = self.answer_question(patient_details=patient_details, query=new_query,
-                                                        conversation_history=self.chat_history)
-                        print("Response:", response)
-                        self.chat_history.extend([
-                            HumanMessage(content=new_query),
-                            AIMessage(content=response),
-                        ])
-                    else:
-                        print("Okay, let me know if you have any other questions.")
-                        continue
-
-
 
 gemini_embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 store = LocalFileStore("./cache/")

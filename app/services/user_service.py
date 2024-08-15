@@ -30,12 +30,12 @@ class UserService:
     def answer_dental_question(self, question="", history=None):
         print("DB",db.index)
         patient_details = {
-            "name": "Adarsh",
-            "age": 23,
+            "name": "Bhattarai A.",
+            "age": 30,
             "symptoms": "None",
             "medical_condition": "Nothing surgery once in past",
             "allergy_history": "Sometimes",
-            "smoker_status": "no",
+            "smoker_status": "yes",
             "current_dental_history": "None"
         }
 

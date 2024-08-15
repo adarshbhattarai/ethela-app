@@ -1,6 +1,7 @@
 import random
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
+from langchain_core.messages import HumanMessage, AIMessage
 
 from app.models.prediction_request import PredictionRequest
 from app.models.question_request import QuestionRequest
@@ -9,12 +10,16 @@ from app.services.user_service import UserService
 from app.dependencies import get_user_service
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-
+from pydantic import BaseModel
+class TextResponse(BaseModel):
+    text: str
 
 class ThelaRoutes:
     def __init__(self):
         self.router = APIRouter()
         self.setup_routes()
+        self.chat_history=[]
+
 
     def setup_routes(self):
         @self.router.post("/", response_model=UserResponse)
@@ -36,7 +41,13 @@ class ThelaRoutes:
                 request: QuestionRequest,
                 service: UserService = Depends(get_user_service)
         ):
-            return service.answer_dental_question(question=request.question, history=request.history)
+            response_text= service.answer_dental_question(question=request.question, history=self.chat_history)
+            self.chat_history.extend([
+                HumanMessage(content=request.question),
+                AIMessage(content=response_text),
+            ])
+            return TextResponse(text=response_text)
+
 
 
         @self.router.post("/predict")
